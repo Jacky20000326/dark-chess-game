@@ -110,18 +110,16 @@ let ChessCategory = ref([
 let imageIndexArr = ref([]);
 // 玩家狀態
 let play1 = ref({
-  camp: null,
   eatChessCount: 0,
 });
 let play2 = ref({
-  camp: null,
   eatChessCount: 0,
 });
 // 遊戲狀態
 let gameState = ref({
   player: "play1",
   winner: null,
-  continualCount: 0,
+  continualCount: 1,
   preChooseIndex: null,
   occupiedState: null,
 });
@@ -160,7 +158,7 @@ const getChessUrl = (name, isOpenState) => {
 // 選擇牌
 const chooseChess = (target, targetIndex) => {
   // 第一次陣營選擇判斷
-  getFirstCamp(ChessCategory.value, target.index);
+
   // 重置選取狀態
   resetChessState();
 
@@ -170,26 +168,25 @@ const chooseChess = (target, targetIndex) => {
     gameState.value.preChooseIndex = null;
     switchPlayer();
   } else {
-    if (imageIndexArr.value[targetIndex]?.state == 0) {
-      moveCess(targetIndex, gameState.value.preChooseIndex);
-      return;
-    }
     if (gameState.value.preChooseIndex) {
       let { compareResult } = useAdjacentChess(
         imageIndexArr.value,
         targetIndex,
         gameState.value.preChooseIndex
       );
-      console.log(compareResult);
 
-      if (compareResult == 1) {
+      if (compareResult == -2) {
+        alert("有事嗎，只能走上下左右ok～");
+      } else if (imageIndexArr.value[targetIndex]?.state == 0) {
+        moveCess(targetIndex, gameState.value.preChooseIndex);
+        gameState.value.preChooseIndex = null;
+      } else if (compareResult == 1) {
         occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
       } else if (compareResult == -1) {
         alert("在亂吃啊");
-      } else if (compareResult == -2) {
-        alert("有事嗎，只能走上下左右ok～");
       } else if (compareResult == 0) {
         alert("眼殘嗎？看清楚好嗎是你自己的棋！");
+      } else if (compareResult == 3) {
       }
 
       // console.log("執行useAdjacentChess");
