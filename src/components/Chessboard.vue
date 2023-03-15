@@ -1,0 +1,301 @@
+<template>
+  <div>
+    <div class="dark-chess-game">
+      <h1>Dark Chess Game</h1>
+      <div class="chessboard-container">
+        <div
+          v-for="(item, index) in imageIndexArr"
+          :id="'chess-' + index"
+          class="chessboard-block"
+          :key="index"
+          @click="chooseChess(item, index)"
+        >
+          <img
+            :class="{ isActive: item.activeState }"
+            :src="getChessUrl(item.index, item.isOpen)"
+            alt=""
+          />
+        </div>
+      </div>
+    </div>
+    <Player :gameState="gameState" />
+  </div>
+</template>
+
+<script setup>
+import Player from "./Player.vue";
+import { ref, onMounted, watch } from "vue";
+import useAdjacentChess from "../CustomHook/useAdjacentChess";
+
+let ChessCategory = ref([
+  {
+    value: "將",
+    quantity: 1,
+    id: 1,
+  },
+  {
+    value: "士",
+    quantity: 2,
+    id: 2,
+  },
+  {
+    value: "象",
+    quantity: 2,
+    id: 3,
+  },
+  {
+    value: "車",
+    quantity: 2,
+    id: 4,
+  },
+  {
+    value: "馬",
+    quantity: 2,
+    id: 5,
+  },
+
+  {
+    value: "炮",
+    quantity: 2,
+    id: 6,
+  },
+  {
+    value: "卒",
+    quantity: 5,
+    id: 7,
+  },
+  {
+    value: "帥",
+    quantity: 1,
+    id: 8,
+  },
+  {
+    value: "仕",
+    quantity: 2,
+    id: 9,
+  },
+  {
+    value: "相",
+    quantity: 2,
+    id: 10,
+  },
+  {
+    value: "俥",
+    quantity: 2,
+    id: 11,
+  },
+  {
+    value: "傌",
+    quantity: 2,
+    id: 12,
+  },
+
+  {
+    value: "砲",
+    quantity: 2,
+    id: 13,
+  },
+  {
+    value: "兵",
+    quantity: 5,
+    id: 14,
+  },
+]);
+// 隨機順序
+let imageIndexArr = ref([]);
+// 玩家狀態
+let play1 = ref({
+  camp: null,
+  eatChessCount: 0,
+});
+let play2 = ref({
+  camp: null,
+  eatChessCount: 0,
+});
+// 遊戲狀態
+let gameState = ref({
+  player: "play1",
+  winner: null,
+  continualCount: 0,
+  preChooseIndex: null,
+  occupiedState: null,
+});
+// chess
+
+// 每次開始時隨機更換chess的順序
+let getAllChessImageIndex = () => {
+  ChessCategory.value.forEach((item, index) => {
+    for (var i = 1; i <= item.quantity; i++) {
+      // 透過quantity的值產生對硬的id(與url命名同)數量，放入array
+      imageIndexArr.value.push({
+        index: item.id,
+        isOpen: false,
+        activeState: false,
+      });
+    }
+  });
+};
+
+// 隨機洗牌
+function shuffleArray(inputArray) {
+  getAllChessImageIndex();
+  // 正常順序
+  inputArray.sort(() => Math.random() - 0.5);
+  // shuffle後random順序
+}
+// 取得本地象棋圖片
+const getChessUrl = (name, isOpenState) => {
+  if (isOpenState == false) {
+    return new URL(`/src/assets/chesses/chessBack.png`, import.meta.url);
+  } else {
+    return new URL(`/src/assets/chesses/chess${name}.png`, import.meta.url);
+  }
+};
+// 選擇牌
+const chooseChess = (target, targetIndex) => {
+  // 第一次陣營選擇判斷
+  getFirstCamp(ChessCategory.value, target.index);
+  // 重置選取狀態
+  resetChessState();
+
+  if (!target.isOpen) {
+    target.isOpen = true;
+    // 切換玩家
+    switchPlayer();
+    gameState.value.preChooseIndex = null;
+    // console.log("以翻開");
+  } else {
+    // 判斷順序為
+    // 1. 是否翻開chess(isOpen) --> 有(下一步)
+    // 2. 判斷是否有被選取(activeState)
+    // 2-1. 有 --> 執行useAdjacentChess
+    // 2-2. 沒有 --> 取值放preChooseIndex及給 activeState
+
+    if (target.activeState || gameState.value.preChooseIndex) {
+      let { compareResult } = useAdjacentChess(
+        imageIndexArr.value,
+        targetIndex,
+        gameState.value.preChooseIndex
+      );
+      console.log(compareResult);
+      if (compareResult == 1) {
+        occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
+      }
+
+      // console.log("執行useAdjacentChess");
+      gameState.value.preChooseIndex = null;
+    } else {
+      gameState.value.preChooseIndex = targetIndex;
+      target.activeState = true;
+      // console.log("值放preChooseIndex及給 activeState");
+    }
+
+    // 存入preActive用意為之後將與其他棋進行比較
+  }
+};
+// 重置activeState的狀態
+const resetChessState = () => {
+  imageIndexArr.value.forEach((item) => {
+    item.activeState = false;
+  });
+};
+// 換人玩
+const switchPlayer = () => {
+  if (gameState.value.player == "play1") {
+    gameState.value.player = "play2";
+  } else {
+    gameState.value.player = "play1";
+  }
+};
+// 第一次選到的陣營
+const getFirstCamp = (initArr, chooseChess) => {
+  let blueCamp = ["將", "士", "象", "車", "馬", "炮", "卒"];
+
+  let result = blueCamp.findIndex(
+    (item) => item == initArr[chooseChess - 1]?.value
+  );
+  if (play1.value.camp) {
+    return;
+  } else {
+  }
+  if (result == -1) {
+    play1.value.camp = "red";
+    play2.value.camp = "blue";
+  } else {
+    play1.value.camp = "blue";
+    play2.value.camp = "red";
+  }
+};
+
+onMounted(() => {
+  // play1先開始
+
+  shuffleArray(imageIndexArr.value);
+});
+
+const occupiedOtherChess = (targetChess, compareChess) => {
+  imageIndexArr.value[targetChess] = compareChess;
+  imageIndexArr.value[compareChess] = null;
+  console.log(imageIndexArr.value[targetChess]);
+  console.log(imageIndexArr.value[compareChess]);
+};
+</script>
+
+<style scoped>
+/* Roboto font */
+@import url("https://fonts.googleapis.com/css2?family=Tilt+Warp&display=swap");
+.dark-chess-game {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+h1 {
+  font-family: "Tilt Warp", cursive;
+  font-weight: 700;
+  font-size: 4.2rem;
+  color: rgb(251, 251, 251);
+  text-shadow: 1px 1px 2px rgb(45, 45, 45);
+}
+img {
+  width: 80%;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+img:hover {
+  transform: scale(1.1);
+  box-shadow: 0px 0px 35px -5px rgba(26, 26, 26, 0.75);
+}
+/* chessboard-container */
+.chessboard-container {
+  width: 1004px;
+  height: 504px;
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  background-image: url("../../public/playground.jpeg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0px 0px 103px 16px rgba(0, 0, 0, 0.75);
+  border: 2px solid #000;
+}
+.chessboard-block {
+  width: 125px;
+  height: 125px;
+  border-right: 2px solid #333;
+  border-bottom: 2px solid #333;
+  font-size: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+/* active class */
+.isActive {
+  border: 5px solid rgb(255, 255, 255);
+  border-radius: 50%;
+  box-shadow: 0px 0px 35px -5px rgba(190, 190, 190, 0.75);
+  transform: scale(1.2);
+}
+</style>
