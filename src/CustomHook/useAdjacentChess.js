@@ -5,6 +5,7 @@ const useAdjacentChess = (initArr,targetChess,compareChess)=>{
     } 
     
     // 這便傳入的是陣列裡面的順序，
+     // 回傳結果 1為吃掉 -1、為不能吃、0為同色、-2位子走錯
     let topChessIndex = targetChess -8
     let downChessIndex = targetChess +8
     let rightChessIndex = targetChess +1
@@ -13,6 +14,7 @@ const useAdjacentChess = (initArr,targetChess,compareChess)=>{
         // console                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    .log('範圍里. . . ')
         return useCompareLevel(initArr,targetChess,compareChess)
     }
+    return {compareResult: -2}
 }
 
 export default useAdjacentChess

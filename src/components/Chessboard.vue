@@ -11,6 +11,7 @@
           @click="chooseChess(item, index)"
         >
           <img
+            v-show="item.state"
             :class="{ isActive: item.activeState }"
             :src="getChessUrl(item.index, item.isOpen)"
             alt=""
@@ -18,7 +19,11 @@
         </div>
       </div>
     </div>
-    <Player :gameState="gameState" />
+    <Player
+      :play1Score="play1.eatChessCount"
+      :gameState="gameState"
+      :play2Score="play2.eatChessCount"
+    />
   </div>
 </template>
 
@@ -131,6 +136,7 @@ let getAllChessImageIndex = () => {
         index: item.id,
         isOpen: false,
         activeState: false,
+        state: 1,
       });
     }
   });
@@ -161,25 +167,29 @@ const chooseChess = (target, targetIndex) => {
   if (!target.isOpen) {
     target.isOpen = true;
     // 切換玩家
-    switchPlayer();
     gameState.value.preChooseIndex = null;
-    // console.log("以翻開");
+    switchPlayer();
   } else {
-    // 判斷順序為
-    // 1. 是否翻開chess(isOpen) --> 有(下一步)
-    // 2. 判斷是否有被選取(activeState)
-    // 2-1. 有 --> 執行useAdjacentChess
-    // 2-2. 沒有 --> 取值放preChooseIndex及給 activeState
-
-    if (target.activeState || gameState.value.preChooseIndex) {
+    if (imageIndexArr.value[targetIndex]?.state == 0) {
+      moveCess(targetIndex, gameState.value.preChooseIndex);
+      return;
+    }
+    if (gameState.value.preChooseIndex) {
       let { compareResult } = useAdjacentChess(
         imageIndexArr.value,
         targetIndex,
         gameState.value.preChooseIndex
       );
       console.log(compareResult);
+
       if (compareResult == 1) {
         occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
+      } else if (compareResult == -1) {
+        alert("在亂吃啊");
+      } else if (compareResult == -2) {
+        alert("有事嗎，只能走上下左右ok～");
+      } else if (compareResult == 0) {
+        alert("眼殘嗎？看清楚好嗎是你自己的棋！");
       }
 
       // console.log("執行useAdjacentChess");
@@ -192,6 +202,7 @@ const chooseChess = (target, targetIndex) => {
 
     // 存入preActive用意為之後將與其他棋進行比較
   }
+  console.log(imageIndexArr);
 };
 // 重置activeState的狀態
 const resetChessState = () => {
@@ -233,11 +244,27 @@ onMounted(() => {
   shuffleArray(imageIndexArr.value);
 });
 
+//  佔領棋子
 const occupiedOtherChess = (targetChess, compareChess) => {
-  imageIndexArr.value[targetChess] = compareChess;
-  imageIndexArr.value[compareChess] = null;
-  console.log(imageIndexArr.value[targetChess]);
-  console.log(imageIndexArr.value[compareChess]);
+  let temp = imageIndexArr.value[compareChess];
+  imageIndexArr.value[compareChess] = imageIndexArr.value[targetChess];
+  imageIndexArr.value[targetChess] = temp;
+  imageIndexArr.value[compareChess].state = 0;
+  // if (gameState.value.player == "play1") {
+  //   play1.value.eatChessCount += 1;
+  //   console.log("play1");
+  // } else {
+  //   play2.value.eatChessCount += 1;
+  //   console.log("play2");
+  // }
+  switchPlayer();
+};
+// 移動
+const moveCess = (targetChess, compareChess) => {
+  let temp = imageIndexArr.value[compareChess];
+  imageIndexArr.value[compareChess] = imageIndexArr.value[targetChess];
+  imageIndexArr.value[targetChess] = temp;
+  switchPlayer();
 };
 </script>
 
