@@ -134,7 +134,7 @@ let getAllChessImageIndex = () => {
       // 透過quantity的值產生對硬的id(與url命名同)數量，放入array
       imageIndexArr.value.push({
         index: item.id,
-        isOpen: 1,
+        isOpen: 0,
         activeState: false,
         state: 1,
       });
