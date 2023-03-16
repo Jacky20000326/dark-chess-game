@@ -20,9 +20,10 @@
       </div>
     </div>
     <Player
-      :play1Score="play1.eatChessCount"
+      :play1Score="play1Score"
       :gameState="gameState"
-      :play2Score="play2.eatChessCount"
+      :play2Score="play2Score"
+      :count="gameState?.count"
     />
   </div>
 </template>
@@ -109,12 +110,8 @@ let ChessCategory = ref([
 // 隨機順序
 let imageIndexArr = ref([]);
 // 玩家狀態
-let play1 = ref({
-  eatChessCount: 0,
-});
-let play2 = ref({
-  eatChessCount: 0,
-});
+let play1Score = ref(0);
+let play2Score = ref(0);
 // 遊戲狀態
 let gameState = ref({
   player: "play1",
@@ -122,6 +119,7 @@ let gameState = ref({
   continualCount: 1,
   preChooseIndex: null,
   occupiedState: null,
+  count: 0,
 });
 // chess
 
@@ -179,6 +177,7 @@ const chooseChess = (target, targetIndex) => {
         alert("有事嗎，只能走上下左右ok～");
       } else if (imageIndexArr.value[targetIndex]?.state == 0) {
         moveCess(targetIndex, gameState.value.preChooseIndex);
+        moveCount();
         gameState.value.preChooseIndex = null;
       } else if (compareResult == 1) {
         occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
@@ -215,25 +214,32 @@ const switchPlayer = () => {
     gameState.value.player = "play1";
   }
 };
-// 第一次選到的陣營
-const getFirstCamp = (initArr, chooseChess) => {
-  let blueCamp = ["將", "士", "象", "車", "馬", "炮", "卒"];
-
-  let result = blueCamp.findIndex(
-    (item) => item == initArr[chooseChess - 1]?.value
-  );
-  if (play1.value.camp) {
-    return;
-  } else {
-  }
-  if (result == -1) {
-    play1.value.camp = "red";
-    play2.value.camp = "blue";
-  } else {
-    play1.value.camp = "blue";
-    play2.value.camp = "red";
+// 玩家移動記數
+const moveCount = () => {
+  gameState.value.count += 1;
+  if (gameState.value.count == 50) {
+    gameState.value.winner = "平局";
   }
 };
+// 第一次選到的陣營
+// const getFirstCamp = (initArr, chooseChess) => {
+//   let blueCamp = ["將", "士", "象", "車", "馬", "炮", "卒"];
+
+//   let result = blueCamp.findIndex(
+//     (item) => item == initArr[chooseChess - 1]?.value
+//   );
+//   if (play1.value.camp) {
+//     return;
+//   } else {
+//   }
+//   if (result == -1) {
+//     play1.value.camp = "red";
+//     play2.value.camp = "blue";
+//   } else {
+//     play1.value.camp = "blue";
+//     play2.value.camp = "red";
+//   }
+// };
 
 onMounted(() => {
   // play1先開始
@@ -247,13 +253,15 @@ const occupiedOtherChess = (targetChess, compareChess) => {
   imageIndexArr.value[compareChess] = imageIndexArr.value[targetChess];
   imageIndexArr.value[targetChess] = temp;
   imageIndexArr.value[compareChess].state = 0;
-  // if (gameState.value.player == "play1") {
-  //   play1.value.eatChessCount += 1;
-  //   console.log("play1");
-  // } else {
-  //   play2.value.eatChessCount += 1;
-  //   console.log("play2");
-  // }
+
+  if (gameState.value.player == "play1") {
+    play1Score.value += 1;
+    console.log(play1Score.value);
+    console.log("play1");
+  } else {
+    play2Score.value += 1;
+    console.log("play2");
+  }
   switchPlayer();
 };
 // 移動

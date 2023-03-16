@@ -1,12 +1,12 @@
 <template>
   <div class="player-container">
     <div v-if="props.gameState.player == 'play1'" class="play1-flag player">
-      Play1 : 0
+      Play1 : {{ play1Score }}
     </div>
     <div v-else class="player">Play1 : {{ play1Score }}</div>
 
     <div v-if="props.gameState.player == 'play2'" class="play2-flag player">
-      0 : Play2
+      {{ play2Score }} : Play2
     </div>
     <div v-else class="player">{{ play2Score }} : Play2</div>
   </div>
@@ -14,7 +14,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
-const props = defineProps(["gameState", "play1Score", "play2Score"]);
+const props = defineProps(["gameState", "play1Score", "play2Score", "count"]);
 
 // const { player, winner, continualCount } = props.gameState;
 </script>
@@ -50,5 +50,13 @@ const props = defineProps(["gameState", "play1Score", "play2Score"]);
   background-position: left;
   background-repeat: no-repeat;
   background-size: contain;
+}
+.count {
+  width: 18%;
+  font-size: 32px;
+  font-family: "Tilt Warp", cursive;
+  font-weight: 200;
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgb(45, 45, 45);
 }
 </style>
