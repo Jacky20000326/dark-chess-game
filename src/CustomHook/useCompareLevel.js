@@ -12,8 +12,6 @@ const useCompareLevel = (initArrIndex,targetChess,compareChess)=>{
     // 判斷是否為同顏色
     if( targetValue <= 7 && compareValue>7 || compareValue <= 7 && targetValue >7 ){
     // console.log(compareLevel)
-        // 砲的規則
-        
            // 一般規則  / 一般規則 / 兵（卒）可以吃 將（帥）/ 兵（卒）可以吃 將（帥）
 
         if(compareLevel <= -7 && compareLevel> -13 || compareLevel<= 7 && compareLevel> 1 || compareLevel == 13 || compareLevel== -1){
@@ -30,5 +28,11 @@ const useCompareLevel = (initArrIndex,targetChess,compareChess)=>{
     return {compareResult:compareResult}
     // 回傳一個結果陣列
 }
+
+// 砲的遊戲規則
+
+
+
+
 
 export default useCompareLevel

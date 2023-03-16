@@ -134,7 +134,7 @@ let getAllChessImageIndex = () => {
       // 透過quantity的值產生對硬的id(與url命名同)數量，放入array
       imageIndexArr.value.push({
         index: item.id,
-        isOpen: 2,
+        isOpen: 1,
         activeState: false,
         state: 1,
       });
@@ -178,7 +178,12 @@ const chooseChess = (target, targetIndex) => {
       );
 
       // 回傳結果 1為吃掉 、-1為不能吃、0為同色、-2位子走錯、3為選到相同的chess、4為砲
-      if (compareResult == -2) {
+      if (compareResult == 10) {
+        console.log(10);
+        moveChess(targetIndex, gameState.value.preChooseIndex);
+      } else if (compareResult == -3) {
+        alert("砲不能這樣走喔～");
+      } else if (compareResult == -2) {
         alert("有事嗎，只能走上下左右ok～");
       } else if (imageIndexArr.value[targetIndex]?.state == 0) {
         moveChess(targetIndex, gameState.value.preChooseIndex);
@@ -194,7 +199,6 @@ const chooseChess = (target, targetIndex) => {
         alert("在亂吃啊");
       } else if (compareResult == 0) {
         alert("眼殘嗎？看清楚好嗎是你自己的棋！");
-      } else if (compareResult == 3) {
       }
 
       // console.log("執行useAdjacentChess");
