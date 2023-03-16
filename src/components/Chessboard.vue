@@ -25,14 +25,18 @@
       :play2Score="play2Score"
       :count="gameState?.count"
     />
+    <div class="stepCount">{{ gameState.count }}</div>
+    <FinishGame v-if="gameState.winner" :winner="gameState.winner" />
   </div>
 </template>
 
 <script setup>
 import Player from "./Player.vue";
+import FinishGame from "./FinishGame.vue";
 import { ref, onMounted, watch } from "vue";
 import useAdjacentChess from "../CustomHook/useAdjacentChess";
-
+let blueCamp = ["將", "士", "象", "車", "馬", "炮", "卒"];
+let redCamp = ["帥", "仕", "相", "俥", "傌", "砲", "兵"];
 let ChessCategory = ref([
   {
     value: "將",
@@ -130,7 +134,7 @@ let getAllChessImageIndex = () => {
       // 透過quantity的值產生對硬的id(與url命名同)數量，放入array
       imageIndexArr.value.push({
         index: item.id,
-        isOpen: false,
+        isOpen: 2,
         activeState: false,
         state: 1,
       });
@@ -173,14 +177,19 @@ const chooseChess = (target, targetIndex) => {
         gameState.value.preChooseIndex
       );
 
+      // 回傳結果 1為吃掉 、-1為不能吃、0為同色、-2位子走錯、3為選到相同的chess、4為砲
       if (compareResult == -2) {
         alert("有事嗎，只能走上下左右ok～");
       } else if (imageIndexArr.value[targetIndex]?.state == 0) {
-        moveCess(targetIndex, gameState.value.preChooseIndex);
-        moveCount();
+        moveChess(targetIndex, gameState.value.preChooseIndex);
+        moveCount(1);
         gameState.value.preChooseIndex = null;
+      } else if (compareResult == 4) {
+        occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
+        moveCount(-1);
       } else if (compareResult == 1) {
         occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
+        moveCount(-1);
       } else if (compareResult == -1) {
         alert("在亂吃啊");
       } else if (compareResult == 0) {
@@ -198,7 +207,6 @@ const chooseChess = (target, targetIndex) => {
 
     // 存入preActive用意為之後將與其他棋進行比較
   }
-  console.log(imageIndexArr);
 };
 // 重置activeState的狀態
 const resetChessState = () => {
@@ -214,12 +222,17 @@ const switchPlayer = () => {
     gameState.value.player = "play1";
   }
 };
+
 // 玩家移動記數
-const moveCount = () => {
-  gameState.value.count += 1;
+const moveCount = (state) => {
   if (gameState.value.count == 50) {
     gameState.value.winner = "平局";
   }
+  if (state == 1) {
+    gameState.value.count += 1;
+    return;
+  }
+  gameState.value.count = 0;
 };
 // 第一次選到的陣營
 // const getFirstCamp = (initArr, chooseChess) => {
@@ -262,15 +275,48 @@ const occupiedOtherChess = (targetChess, compareChess) => {
     play2Score.value += 1;
     console.log("play2");
   }
+  // 監聽是否有玩家先吃到13顆
+  if (play1Score.value == 16) {
+    gameState.value.winner = "play1";
+    return;
+  }
+  if (play2Score.value == 16) {
+    gameState.value.winner = "play2";
+    return;
+  }
+
   switchPlayer();
 };
 // 移動
-const moveCess = (targetChess, compareChess) => {
+const moveChess = (targetChess, compareChess) => {
   let temp = imageIndexArr.value[compareChess];
   imageIndexArr.value[compareChess] = imageIndexArr.value[targetChess];
   imageIndexArr.value[targetChess] = temp;
   switchPlayer();
 };
+
+// 判斷某一camp的棋子全數被吃完
+const xxx = () => {
+  let result = imageIndexArr.value.findIndex((item) => item.state !== 1);
+  console.log(result);
+};
+
+// 監聽是否結束遊戲
+watch(
+  () => gameState.value.winner,
+  () => {
+    if (gameState.value.winner == "平局") {
+      console.log("平局");
+    } else if (gameState.value.winner == "play1") {
+      console.log("winner is play1");
+    } else if (gameState.value.winner == "play2") {
+      console.log("winner is play2");
+    } else {
+      console.log("繼續遊戲");
+      return;
+    }
+  }
+);
 </script>
 
 <style scoped>
@@ -322,6 +368,16 @@ img:hover {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.stepCount {
+  position: fixed;
+  font-family: "Tilt Warp", cursive;
+  font-weight: 700;
+  font-size: 3.5rem;
+  color: rgb(251, 251, 251);
+  text-shadow: 1px 1px 2px rgb(45, 45, 45);
+  right: 30px;
+  top: 20px;
 }
 /* active class */
 .isActive {
