@@ -19,7 +19,7 @@ const cannonRule = (initArrIndex,targetChess,compareChess)=>{
     let rightChessIndex = targetChess +1
     let leftChessIndex = targetChess -1
 
-
+// 如果target的state為0的情況下，此時砲的移動方式就和一般棋子一樣
     if(!initArrIndex[targetChess]?.state){
         console.log(initArrIndex[targetChess]?.state)
         if( compareChess == topChessIndex || compareChess == downChessIndex || compareChess==rightChessIndex || compareChess==leftChessIndex ){

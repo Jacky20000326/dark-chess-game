@@ -233,7 +233,7 @@ const switchPlayer = () => {
 
 // 玩家移動記數
 const moveCount = (state) => {
-  if (gameState.value.count == 50) {
+  if (gameState.value.count == 49) {
     gameState.value.winner = "平局";
   }
   if (state == 1) {
