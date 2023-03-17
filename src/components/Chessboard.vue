@@ -169,49 +169,53 @@ const chooseChess = (target, targetIndex) => {
     // 切換玩家
     gameState.value.preChooseIndex = null;
     switchPlayer();
-  } else {
-    if (gameState.value.preChooseIndex) {
-      let { compareResult } = useAdjacentChess(
-        imageIndexArr.value,
-        targetIndex,
-        gameState.value.preChooseIndex
-      );
+    return;
+  }
+  if (gameState.value.preChooseIndex) {
+    let { compareResult } = useAdjacentChess(
+      imageIndexArr.value,
+      targetIndex,
+      gameState.value.preChooseIndex
+    );
 
-      // 回傳結果 1為吃掉 、-1為不能吃、0為同色、-2位子走錯、3為選到相同的chess、4為砲
-      if (compareResult == 10) {
-        console.log(10);
-        moveChess(targetIndex, gameState.value.preChooseIndex);
-      } else if (compareResult == -3) {
-        alert("砲不能這樣走喔～");
-      } else if (compareResult == -2) {
-        alert("有事嗎，只能走上下左右ok～");
-      } else if (imageIndexArr.value[targetIndex]?.state == 0) {
-        moveChess(targetIndex, gameState.value.preChooseIndex);
-        moveCount(1);
-        gameState.value.preChooseIndex = null;
-      } else if (compareResult == 4) {
-        occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
-        moveCount(-1);
-      } else if (compareResult == 1) {
-        occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
-        moveCount(-1);
-      } else if (compareResult == -1) {
-        alert("在亂吃啊");
-      } else if (compareResult == 0) {
-        alert("眼殘嗎？看清楚好嗎是你自己的棋！");
-      }
-
-      // console.log("執行useAdjacentChess");
+    // 回傳結果 1為吃掉 、-1為不能吃、0為同色、-2位子走錯、3為選到相同的chess、4為砲
+    if (compareResult == 10) {
+      console.log(10);
+      moveChess(targetIndex, gameState.value.preChooseIndex);
+    } else if (compareResult == -3) {
+      alert("砲不能這樣走喔～");
+    } else if (compareResult == -2) {
+      alert("有事嗎，只能走上下左右ok～");
+    } else if (imageIndexArr.value[targetIndex]?.state == 0) {
+      moveChess(targetIndex, gameState.value.preChooseIndex);
+      moveCount(1);
       gameState.value.preChooseIndex = null;
-    } else {
-      gameState.value.preChooseIndex = targetIndex;
-      target.activeState = true;
-      // console.log("值放preChooseIndex及給 activeState");
+    } else if (compareResult == 4) {
+      occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
+      moveCount(-1);
+    } else if (compareResult == 1) {
+      occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
+      moveCount(-1);
+    } else if (compareResult == -1) {
+      alert("在亂吃啊");
+    } else if (compareResult == 0) {
+      alert("眼殘嗎？看清楚好嗎是你自己的棋！");
     }
 
-    // 存入preActive用意為之後將與其他棋進行比較
+    // console.log("執行useAdjacentChess");
+    gameState.value.preChooseIndex = null;
+    return;
   }
+  if (!imageIndexArr.value[targetIndex]?.state) {
+    return;
+  }
+  gameState.value.preChooseIndex = targetIndex;
+  target.activeState = true;
+  // console.log("值放preChooseIndex及給 activeState");
+
+  // 存入preActive用意為之後將與其他棋進行比較
 };
+
 // 重置activeState的狀態
 const resetChessState = () => {
   imageIndexArr.value.forEach((item) => {
