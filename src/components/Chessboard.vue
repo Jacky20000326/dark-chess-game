@@ -11,9 +11,9 @@
           @click="chooseChess(item, index)"
         >
           <img
-            v-show="item.state"
-            :class="{ isActive: item.activeState }"
-            :src="getChessUrl(item.index, item.isOpen)"
+            v-show="item?.state"
+            :class="{ isActive: item?.activeState }"
+            :src="getChessUrl(item?.index, item?.isOpen)"
             alt=""
           />
         </div>
@@ -33,128 +33,33 @@
 <script setup>
 import Player from "./Player.vue";
 import FinishGame from "./FinishGame.vue";
-import { ref, onMounted, watch } from "vue";
+import { ref, onBeforeMount, watch } from "vue";
 import useAdjacentChess from "../CustomHook/useAdjacentChess";
-let blueCamp = ["將", "士", "象", "車", "馬", "炮", "卒"];
-let redCamp = ["帥", "仕", "相", "俥", "傌", "砲", "兵"];
-let ChessCategory = ref([
-  {
-    value: "將",
-    quantity: 1,
-    id: 1,
-  },
-  {
-    value: "士",
-    quantity: 2,
-    id: 2,
-  },
-  {
-    value: "象",
-    quantity: 2,
-    id: 3,
-  },
-  {
-    value: "車",
-    quantity: 2,
-    id: 4,
-  },
-  {
-    value: "馬",
-    quantity: 2,
-    id: 5,
-  },
-
-  {
-    value: "炮",
-    quantity: 2,
-    id: 6,
-  },
-  {
-    value: "卒",
-    quantity: 5,
-    id: 7,
-  },
-  {
-    value: "帥",
-    quantity: 1,
-    id: 8,
-  },
-  {
-    value: "仕",
-    quantity: 2,
-    id: 9,
-  },
-  {
-    value: "相",
-    quantity: 2,
-    id: 10,
-  },
-  {
-    value: "俥",
-    quantity: 2,
-    id: 11,
-  },
-  {
-    value: "傌",
-    quantity: 2,
-    id: 12,
-  },
-
-  {
-    value: "砲",
-    quantity: 2,
-    id: 13,
-  },
-  {
-    value: "兵",
-    quantity: 5,
-    id: 14,
-  },
-]);
+import { ChessStore,ChessFlyweightFactory } from '../Store/ChessStore.js'
+import { GameStateStore } from '../Store/GameStore'
+// concrete ChessStore class
+let ConcreteChessStore = new ChessStore()
+// chess image change
+let ConcreteChessFlyweightFactory = new ChessFlyweightFactory()
+let BackImageChess = ConcreteChessFlyweightFactory.GetResultChessImage("backImageChess")
+let FrontImageChess = ConcreteChessFlyweightFactory.GetResultChessImage("frontImageChess")
+// concrete GameStateStore class
+let ConcreteGameStateStore = new GameStateStore()
 // 隨機順序
-let imageIndexArr = ref([]);
+let imageIndexArr = ref(ConcreteChessStore.imageIndexArr);
+// 遊戲狀態
+let gameState = ref(ConcreteGameStateStore);
+
 // 玩家狀態
 let play1Score = ref(0);
 let play2Score = ref(0);
-// 遊戲狀態
-let gameState = ref({
-  player: "play1",
-  winner: null,
-  continualCount: 1,
-  preChooseIndex: null,
-  occupiedState: null,
-  count: 0,
-});
-// chess
 
-// 每次開始時隨機更換chess的順序
-let getAllChessImageIndex = () => {
-  ChessCategory.value.forEach((item, index) => {
-    for (var i = 1; i <= item.quantity; i++) {
-      // 透過quantity的值產生對硬的id(與url命名同)數量，放入array
-      imageIndexArr.value.push({
-        index: item.id,
-        isOpen: 0,
-        activeState: false,
-        state: 1,
-      });
-    }
-  });
-};
 
-// 隨機洗牌
-function shuffleArray(inputArray) {
-  getAllChessImageIndex();
-  // 正常順序
-  inputArray.sort(() => Math.random() - 0.5);
-  // shuffle後random順序
-}
-// 取得本地象棋圖片
 const getChessUrl = (name, isOpenState) => {
   if (isOpenState == false) {
-    return new URL(`/src/assets/chesses/chessBack.png`, import.meta.url);
+    return BackImageChess.opration();
   } else {
-    return new URL(`/src/assets/chesses/chess${name}.png`, import.meta.url);
+    return FrontImageChess.opration(name);
   }
 };
 // 選擇牌
@@ -162,13 +67,14 @@ const chooseChess = (target, targetIndex) => {
   // 第一次陣營選擇判斷
 
   // 重置選取狀態
-  resetChessState();
+  ConcreteChessStore.ResetChessState();
 
   if (!target.isOpen) {
     target.isOpen = true;
     // 切換玩家
     gameState.value.preChooseIndex = null;
-    switchPlayer();
+    gameState.value.SwitchPlayer()
+    // switchPlayer();
     return;
   }
   if (gameState.value.preChooseIndex) {
@@ -188,14 +94,14 @@ const chooseChess = (target, targetIndex) => {
       alert("有事嗎，只能走上下左右ok～");
     } else if (imageIndexArr.value[targetIndex]?.state == 0) {
       moveChess(targetIndex, gameState.value.preChooseIndex);
-      moveCount(1);
+      gameState.value.MoveCount(1);
       gameState.value.preChooseIndex = null;
     } else if (compareResult == 4) {
       occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
-      moveCount(-1);
+      gameState.value.MoveCount(-1);
     } else if (compareResult == 1) {
       occupiedOtherChess(targetIndex, gameState.value.preChooseIndex);
-      moveCount(-1);
+      gameState.value.MoveCount(-1);
     } else if (compareResult == -1) {
       alert("在亂吃啊");
     } else if (compareResult == 0) {
@@ -217,56 +123,11 @@ const chooseChess = (target, targetIndex) => {
 };
 
 // 重置activeState的狀態
-const resetChessState = () => {
-  imageIndexArr.value.forEach((item) => {
-    item.activeState = false;
-  });
-};
-// 換人玩
-const switchPlayer = () => {
-  if (gameState.value.player == "play1") {
-    gameState.value.player = "play2";
-  } else {
-    gameState.value.player = "play1";
-  }
-};
 
-// 玩家移動記數
-const moveCount = (state) => {
-  if (gameState.value.count == 49) {
-    gameState.value.winner = "平局";
-  }
-  if (state == 1) {
-    gameState.value.count += 1;
-    return;
-  }
-  gameState.value.count = 0;
-};
-// 第一次選到的陣營
-// const getFirstCamp = (initArr, chooseChess) => {
-//   let blueCamp = ["將", "士", "象", "車", "馬", "炮", "卒"];
 
-//   let result = blueCamp.findIndex(
-//     (item) => item == initArr[chooseChess - 1]?.value
-//   );
-//   if (play1.value.camp) {
-//     return;
-//   } else {
-//   }
-//   if (result == -1) {
-//     play1.value.camp = "red";
-//     play2.value.camp = "blue";
-//   } else {
-//     play1.value.camp = "blue";
-//     play2.value.camp = "red";
-//   }
-// };
 
-onMounted(() => {
-  // play1先開始
 
-  shuffleArray(imageIndexArr.value);
-});
+
 
 //  佔領棋子
 const occupiedOtherChess = (targetChess, compareChess) => {
@@ -277,11 +138,8 @@ const occupiedOtherChess = (targetChess, compareChess) => {
 
   if (gameState.value.player == "play1") {
     play1Score.value += 1;
-    console.log(play1Score.value);
-    console.log("play1");
   } else {
     play2Score.value += 1;
-    console.log("play2");
   }
   // 監聽是否有玩家先吃到13顆
   if (play1Score.value == 16) {
@@ -292,39 +150,40 @@ const occupiedOtherChess = (targetChess, compareChess) => {
     gameState.value.winner = "play2";
     return;
   }
-
-  switchPlayer();
+  gameState.value.SwitchPlayer()
+  // switchPlayer();
 };
 // 移動
 const moveChess = (targetChess, compareChess) => {
-  let temp = imageIndexArr.value[compareChess];
-  imageIndexArr.value[compareChess] = imageIndexArr.value[targetChess];
-  imageIndexArr.value[targetChess] = temp;
-  switchPlayer();
+  ConcreteChessStore.MoveChess(targetChess, compareChess)
+  gameState.value.SwitchPlayer()
+  // switchPlayer();
 };
 
-// 判斷某一camp的棋子全數被吃完
-const xxx = () => {
-  let result = imageIndexArr.value.findIndex((item) => item.state !== 1);
-  console.log(result);
-};
+onBeforeMount(() => {
+  // play1先開始
 
+  // shuffleArray(imageIndexArr.value);
+  ConcreteChessStore.GetAllChessImageIndex()
+  ConcreteChessStore.ShuffleArray()
+
+});
 // 監聽是否結束遊戲
-watch(
-  () => gameState.value.winner,
-  () => {
-    if (gameState.value.winner == "平局") {
-      console.log("平局");
-    } else if (gameState.value.winner == "play1") {
-      console.log("winner is play1");
-    } else if (gameState.value.winner == "play2") {
-      console.log("winner is play2");
-    } else {
-      console.log("繼續遊戲");
-      return;
-    }
-  }
-);
+// watch(
+//   () => gameState.value.winner,
+//   () => {
+//     if (gameState.value.winner == "平局") {
+//       console.log("平局");
+//     } else if (gameState.value.winner == "play1") {
+//       console.log("winner is play1");
+//     } else if (gameState.value.winner == "play2") {
+//       console.log("winner is play2");
+//     } else {
+//       console.log("繼續遊戲");
+//       return;
+//     }
+//   }
+// );
 </script>
 
 <style scoped>
