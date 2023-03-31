@@ -1,26 +1,35 @@
-<template>
+.<template>
   <div class="player-container">
-    <div v-if="props.gameState.player == 'play1'" class="play1-flag player">
-      Play1 : {{ play1Score }}
+    <div v-if="props.currPlayer == 'play1'" class="play1-flag player">
+      Play1 : {{props.playerOneScore }}
     </div>
-    <div v-else class="player">Play1 : {{ play1Score }}</div>
+    <div v-else class="player">Play1 : {{props.playerOneScore }}</div>
 
-    <div v-if="props.gameState.player == 'play2'" class="play2-flag player">
-      {{ play2Score }} : Play2
+    <div v-if="props.currPlayer == 'play2'" class="play2-flag player">
+      {{ props.playerTwoScore }} : Play2
+      
     </div>
-    <div v-else class="player">{{ play2Score }} : Play2</div>
+    <div v-else class="player">{{  props.playerTwoScore }} : Play2</div>
   </div>
+
+
+
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-const props = defineProps(["gameState", "play1Score", "play2Score", "count"]);
 
-// const { player, winner, continualCount } = props.gameState;
+const props = defineProps(["count","currPlayer","playerOneScore","playerTwoScore"]);
+
+
+
 </script>
 
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Tilt+Warp&display=swap");
+h1{
+  color: #ffffff;
+  font-size: 50px;
+}
 .player-container {
   width: 80%;
   display: flex;
